@@ -1,6 +1,6 @@
 # Running the Genome Assembly Pipeline
 ## Installation
-This pipeline is designed to be as simple to use as possible: input your data, and a completed, high quality assembly will come out. (MORE INTRO) This tutorial will walk through how to install and use every program listed. Links to the programs in the pipeline are below. 
+This pipeline is designed to be as simple to use as possible: input your data, and a completed, high quality assembly will come out. Currently, this pipeline is only useable on Bucknell University's BisonNet. It also utilizes the SLURM system which allows programs to run on a system with much more computing power than a local computer. This tutorial will walk through how to install and use every program listed. Links to the programs in the pipeline are below. 
 
 #### Programs Used:
 * Nextflow: https://www.nextflow.io/docs/latest/getstarted.html 
@@ -25,14 +25,14 @@ Make sure you are in your “outermost” directory. For those on the BisonNet s
 mkdir genome-assembly
 cd genome-assembly
 ```
-You can change “genome-assembly” to whatever you would like the folder to be called. The “cd” command ensures that you are working inside your new folder. 
+You can change `genome-assembly` to whatever you would like the folder to be called. The `cd` command ensures that you are working inside your new folder. 
 
-For downloading nextflow, run these two commands in your Linux terminal. 
+For downloading Nextflow, run these two commands in your Linux terminal. 
 ```
 wget -q0- https://get.nextflow.io | bash
 chmod +x nextflow
 ```
-When you are finished, your current directory should have a file called “nextflow”. This is the main executable file and will allow you to run your nextflow scripts. 
+When you are finished, your current directory should have a file called `nextflow`. This is the main executable file and will allow you to run your Nextflow scripts. 
 
 Next, to download the script, click here (eventually will publish to github).
 (Insert instructions)
@@ -46,3 +46,17 @@ rm -rf ~/miniconda3/miniconda.sh
 ~/miniconda3/bin/conda init bash
 ~/miniconda3/bin/conda init zsh
 ```
+#### The following programs will need to be installed through miniconda:
+* hifiasm
+* bwa
+* assembly-stats
+
+#### The following programs will need to be installed separately: 
+* SALSA2
+* Juicer
+
+#### The following programs are already installed on the BisonNet system in the form of modules:
+* fasterq-dump
+* fastQC
+* Jellyfish
+* BUSCO
