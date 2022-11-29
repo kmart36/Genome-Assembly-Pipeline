@@ -21,3 +21,28 @@ Many scripts will be provided for you. This guide will tell you step-by-step wha
 Nextflow is key to running the entire pipeline. Nextflow is a bioinformatics workflow manager that allows for parallelization of programs as well as the simplicity of streaming together processes. 
 
 Make sure you are in your “outermost” directory. For those on the BisonNet system, this will be the directory that looks like your Bucknell login. If you would like to keep this process separate from your other work, you can run these commands to create a separate directory. 
+```
+mkdir genome-assembly
+cd genome-assembly
+```
+You can change “genome-assembly” to whatever you would like the folder to be called. The “cd” command ensures that you are working inside your new folder. 
+
+For downloading nextflow, run these two commands in your Linux terminal. 
+```
+wget -q0- https://get.nextflow.io | bash
+chmod +x nextflow
+```
+When you are finished, your current directory should have a file called “nextflow”. This is the main executable file and will allow you to run your nextflow scripts. 
+
+Next, to download the script, click here (eventually will publish to github).
+(Insert instructions)
+
+For most of our processes, we use miniconda which allows for easy installs and easy usage. To install from the command line, run these commands in your Linux terminal. 
+```
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+~/miniconda3/bin/conda init bash
+~/miniconda3/bin/conda init zsh
+```
