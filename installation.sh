@@ -37,7 +37,6 @@ conda install -c bioconda assembly-stats
 mkdir SALSA
 cd SALSA
 git init
-git clone git@github.com:marbl/SALSA.git
 
-#
-cd ..
+#Cloning the SALSA repository
+git clone git@github.com:marbl/SALSA.git
