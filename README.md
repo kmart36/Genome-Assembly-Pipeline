@@ -20,7 +20,7 @@ Many scripts will be provided for you. This guide will tell you step-by-step wha
 
 
 
-====================================================== DRAFT =======================================================================================
+====================================================== DRAFT ============================================================
 
 Nextflow is key to running the entire pipeline. Nextflow is a bioinformatics workflow manager that allows for parallelization of programs as well as the simplicity of streaming together processes. 
 
