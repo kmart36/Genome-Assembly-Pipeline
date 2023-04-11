@@ -18,6 +18,10 @@ Many scripts will be provided for you. This guide will tell you step-by-step wha
 
 #### Getting started: 
 
+
+
+====================================================== DRAFT ============================================================
+
 Nextflow is key to running the entire pipeline. Nextflow is a bioinformatics workflow manager that allows for parallelization of programs as well as the simplicity of streaming together processes. 
 
 Make sure you are in your “outermost” directory. For those on the BisonNet system, this will be the directory that looks like your Bucknell login. If you would like to keep this process separate from your other work, you can run these commands to create a separate directory. 
