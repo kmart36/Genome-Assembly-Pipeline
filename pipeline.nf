@@ -1,40 +1,38 @@
 #!/usr/bin/env nextflow
 
-pb_files = Channel.fromPath("/home/kam071/SampleReads/Nymphalis_polychloros/pac_bio/*.fastq", type: 'file')
+nextflow.enable.dsl=2
 
-hc_files = Channel.fromFilePairs("/home/kam071/SampleReads/Nymphalis_polychloros/hi-c/*_{1,2}.fastq", checkIfExists:true)
-
-pb_files.into{files_fastQC; files_jellyfish; files_hifiasm}
-
-hc_files.into{files_hc_hifiasm}
+workDir = '/home/kam071/SampleReads/Photinus_scintillans'
 
 process fastQC {
 	conda 'fastqc'
+	executor 'slurm'
+	memory '8 GB'
 
-	publishDir '/SampleReads/Nymphalis_polychloros'	
+	publishDir '/SampleReads/Photinus_scintillans'	
 
 	input:
-	file sample from files_fastQC
+	file sample
 	
 	script:
 	"""
 		mkdir -p ${sample.baseName}_fastqc
-		fastqc --outdir ${sample.baseName}_fastqc \
-		${sample}
+		fastqc --outdir ${sample.baseName}_fastqc ${sample}
 	"""
 }
 
 process jellyfish {
 	
 	conda 'jellyfish'
-	memory '128 GB'
+	cpus 8
+	memory '100 GB'
 	executor 'slurm'
 
         input:
-	file sample from files_jellyfish
+	file sample
 	
 	output:
-        file "${sample.baseName}.jf" into jellyfiles
+        path "${sample.baseName}.jf"
 
 	script:
 	"""
@@ -46,9 +44,12 @@ process jellyfish {
 process genomescope {
 	
 	conda 'jellyfish'
+	executor 'slurm'
+	cpus 1
+	memory '4 GB'
 
 	input:
-	file jellyfish from jellyfiles
+	file jellyfish
 
 	script:
 	"""
@@ -61,17 +62,69 @@ process hifiasm {
 	conda 'hifiasm'
 	memory '128 GB'
 	executer 'slurm'
+	cpus 4
 
 	input:
-	file pacbio from files_hifiasm
-	tuple val x, tuple file one, file two from files_hic_hifiasm
+	file pacbio
+	file hic1
+	file hic2
+
+	output:
+	path "${pacbio.baseName}.asm.hic.p_ctg.gfa"	
 
 	script:
 	"""
-				
+	hifiasm -l 0 -o ${pacbio.baseName}.asm -t 32 --h1 ${hic1} --h2 ${hic2} ${pacbio}	
+	"""
+}
+
+process gfa2fasta {
+	
+	executer 'slurm'
+	cpus 1
+	memory '16 GB'	
+
+	input:
+	file graph
+
+	output:
+	path "${graph.baseName}.fa"
+
+	script:
+	"""
+	gfatools gfa2fa ${graph} > ${graph.baseName}.fa
+	"""
+}
+
+process bwa_index {
+		 
+	input:
+	file fasta from asm_fasta	
+	
+	script:
+	"""
+	bwa index -p ${fasta.baseName}_bwa_index ${fasta}
+	"""
+}
+
+process bwa_mem {
+	
+	input:
+	file val
+
+	script:
+	"""
+	bwa mem -t 4 _bwa_index /home/kam071/SampleReads/Rhagonycha_fulva/ERR6054569_1.fastq /home/kam071/SampleReads/Rhagonycha_fulva/ERR6054569_2.fastq 2> bwa.err > bwa_fulva_HiC.sam
 	"""
 }
 
 workflow {
-	 
+	 pacBio = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiFiData/**/*.fastq*')
+	 hic_1 = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiCData/*_R1.fastq*')
+	 hic_2 = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiCData/*_R2.fastq*')
+	 fastQC(pacBio)
+	 jellyfish(pacBio)
+	 genomescope(jellyfish.out)
+	 hifiasm(pacBio, hic_1, hic_2)
+	 gfa2fasta(hifiasm.out)
 }
