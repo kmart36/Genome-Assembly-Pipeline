@@ -32,11 +32,11 @@ process jellyfish {
 	file sample
 	
 	output:
-        path "${sample.baseName}.jf"
+        path "${sample.baseName}_31_IND2.jf"
 
 	script:
 	"""
-		jellyfish count -C -m 21 -s 16000000000 -t 10 ${sample} -o ${sample.baseName}.jf
+		jellyfish count -C -m 31 -s 16000000000 -t 10 ${sample} -o ${sample.baseName}_31_IND2.jf
 
 	"""
 }
@@ -61,26 +61,25 @@ process hifiasm {
 	
 	conda 'hifiasm'
 	memory '128 GB'
-	executer 'slurm'
+	executor 'slurm'
 	cpus 4
 
 	input:
 	file pacbio
-	file hic1
-	file hic2
+	tuple val(sample_id), path(hic)
 
 	output:
 	path "${pacbio.baseName}.asm.hic.p_ctg.gfa"	
 
 	script:
 	"""
-	hifiasm -l 0 -o ${pacbio.baseName}.asm -t 32 --h1 ${hic1} --h2 ${hic2} ${pacbio}	
+	hifiasm -l 0 -o ${pacbio.baseName}.asm -t 32 --h1 ${hic[0]} --h2 ${hic[1]} ${pacbio}	
 	"""
 }
 
 process gfa2fasta {
 	
-	executer 'slurm'
+	executor 'slurm'
 	cpus 1
 	memory '16 GB'	
 
@@ -98,8 +97,15 @@ process gfa2fasta {
 
 process bwa_index {
 		 
+	executor 'slurm'
+	cpus 2
+	memory '8 GB'
+
 	input:
-	file fasta from asm_fasta	
+	file fasta
+	
+	output:
+	path '*_bwa_index'	
 	
 	script:
 	"""
@@ -110,21 +116,33 @@ process bwa_index {
 process bwa_mem {
 	
 	input:
-	file val
+	file index
+	tuple val(sample_id), path(hic)
 
 	script:
 	"""
-	bwa mem -t 4 _bwa_index /home/kam071/SampleReads/Rhagonycha_fulva/ERR6054569_1.fastq /home/kam071/SampleReads/Rhagonycha_fulva/ERR6054569_2.fastq 2> bwa.err > bwa_fulva_HiC.sam
+	bwa mem -t 4 _bwa_index ${hic[0]} ${hic[1]} 2> bwa.err > ${index.baseName}.sam
 	"""
 }
 
-workflow {
-	 pacBio = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiFiData/**/*.fastq*')
-	 hic_1 = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiCData/*_R1.fastq*')
-	 hic_2 = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiCData/*_R2.fastq*')
+workflow pipeline {
+	 pacBio = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiFiData/**/*.fastq')
+	 hic = Channel.fromFilePairs('/home/kam071/SampleReads/Photinus_scintillans/RawHiCData/*_R{1,2}.fastq*', checkIfExists: true)
 	 fastQC(pacBio)
+         jellyfish(pacBio)
+         genomescope(jellyfish.out)
+         hifiasm(pacBio, hic)
+         gfa2fasta(hifiasm.out)
+         bwa_index(gfa2fasta.out)
+         bwa_mem(bwa_index.out, hic)
+}
+
+workflow simple {
+	 pacBio = Channel.fromPath('/home/kam071/SampleReads/Photinus_scintillans/RawHiFiData/**/*.fasta')
 	 jellyfish(pacBio)
-	 genomescope(jellyfish.out)
-	 hifiasm(pacBio, hic_1, hic_2)
-	 gfa2fasta(hifiasm.out)
+         genomescope(jellyfish.out)
+}
+
+workflow {
+	 simple()	 
 }
